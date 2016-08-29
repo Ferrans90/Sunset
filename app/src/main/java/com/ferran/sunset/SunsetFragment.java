@@ -18,6 +18,7 @@ import android.widget.TextView;
  * A simple {@link Fragment} subclass.
  */
 public class SunsetFragment extends Fragment {
+
     private View mSceneView;
     private View mSunView;
     private View mSkyView;
@@ -25,6 +26,8 @@ public class SunsetFragment extends Fragment {
     private int mBlueSkyColor;
     private int mSunsetSkyColor;
     private int mNightSkyColor;
+
+    private boolean isSunset = false;
 
     public static SunsetFragment newInstance() {
 
@@ -66,23 +69,48 @@ public class SunsetFragment extends Fragment {
         float sunYStart = mSunView.getTop();
         float sunYEnd = mSkyView.getHeight();
 
-        ObjectAnimator heightAnimator =
+        // sunset
+        ObjectAnimator sunsetHeightAnimator =
                 ObjectAnimator.ofFloat(mSunView, "y", sunYStart, sunYEnd).setDuration(3000);
-        heightAnimator.setInterpolator(new AccelerateInterpolator());
+        sunsetHeightAnimator.setInterpolator(new AccelerateInterpolator());
 
         ObjectAnimator sunsetSkyAnimator =
                 ObjectAnimator.ofInt(mSkyView, "backgroundColor", mBlueSkyColor, mSunsetSkyColor)
                         .setDuration(3000);
         sunsetSkyAnimator.setEvaluator(new ArgbEvaluator());
 
-        ObjectAnimator nightSkyAnimator =
+        ObjectAnimator sunsetNightSkyAnimator =
                 ObjectAnimator.ofInt(mSkyView, "backgroundColor", mSunsetSkyColor, mNightSkyColor)
                         .setDuration(1500);
-        nightSkyAnimator.setEvaluator(new ArgbEvaluator());
+        sunsetNightSkyAnimator.setEvaluator(new ArgbEvaluator());
 
-        AnimatorSet animatorSet = new AnimatorSet();
-        animatorSet.play(heightAnimator).with(sunsetSkyAnimator).before(nightSkyAnimator);
-        animatorSet.start();
+        AnimatorSet sunsetAnimatorSet = new AnimatorSet();
+        sunsetAnimatorSet.play(sunsetHeightAnimator).with(sunsetSkyAnimator).before(sunsetNightSkyAnimator);
+
+        // sunrise
+        ObjectAnimator sunriseHeightAnimator =
+                ObjectAnimator.ofFloat(mSunView, "y", sunYEnd, sunYStart).setDuration(3000);
+        sunriseHeightAnimator.setInterpolator(new AccelerateInterpolator());
+
+        ObjectAnimator sunriseSkyAnimator = ObjectAnimator.ofInt(mSkyView, "backgroundColor",
+                mSunsetSkyColor, mBlueSkyColor).setDuration(3000);
+        sunriseSkyAnimator.setEvaluator(new ArgbEvaluator());
+
+        ObjectAnimator sunriseNightSkyAnimator = ObjectAnimator.ofInt(mSkyView, "backgroundColor",
+                mNightSkyColor, mSunsetSkyColor).setDuration(1500);
+        sunriseNightSkyAnimator.setEvaluator(new ArgbEvaluator());
+
+        AnimatorSet sunriseAnimatorSet = new AnimatorSet();
+        sunriseAnimatorSet.play(sunriseNightSkyAnimator).before(sunriseSkyAnimator)
+                .with(sunriseHeightAnimator);
+
+        if (!isSunset) {
+            sunsetAnimatorSet.start();
+            isSunset = true;
+        } else {
+            sunriseAnimatorSet.start();
+            isSunset = false;
+        }
     }
 
 }
